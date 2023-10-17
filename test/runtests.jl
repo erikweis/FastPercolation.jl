@@ -1,0 +1,1 @@
+include("test_percolation_MC.jl")
