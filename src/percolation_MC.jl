@@ -24,7 +24,7 @@ function percolation_MC!(
     # shuffle percolation order
     shuffle!(edgelist)
     
-    for (idx,e) in enumerate(edgelist[1:m_max])
+    for (m,e) in enumerate(edgelist[1:m_max])
 
         # get nodes of edge and check for vaccinated nodes
         i,j = get_ij(e)
@@ -48,7 +48,7 @@ function percolation_MC!(
         update_observable_data(i,j,x,M)
 
         ##### check all qualitiies of interest #######
-        calculate_observables!(M.Qs[idx],M,x)
+        calculate_observables!(m,M,x)
     end
 end
 

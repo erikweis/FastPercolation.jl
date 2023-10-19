@@ -16,3 +16,16 @@ end
 function micro_to_canonical(ps::Vector{Float64}, Qs)
     return map(p->micro_to_canonical(p,Qs),ps)
 end
+
+
+function reduce_sentinel_Qs(Qs)
+    map(Qs) do Q
+        n, m = size(Q)
+        [sum(Q[:,i])/n for i in 1:m]
+    end
+end
+
+function reduce_sentinel_Q(Q::Matrix{Float64})
+    n, m = size(Q)
+    [sum(Q[:,i])/n for i in 1:m]
+end

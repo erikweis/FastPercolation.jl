@@ -64,7 +64,7 @@ function update_observable_data(i,j,x::Vector{Int64},M::SentinelObservable)
 end
 
 function calculate_observables!(
-    Q::QSentinel,
+    m::Int64,
     M::SentinelObservable,
     x::Vector{Int64}
 )
@@ -75,6 +75,7 @@ function calculate_observables!(
     """
     
     n = length(x)
+    Q = M.Qs[m]
     #Q .= n      # set all values to maximum possible, -> ensure reset is run!
     
     for seed in 1:n

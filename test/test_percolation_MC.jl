@@ -14,7 +14,8 @@ function test_percolation_MC()
     num_sets = 50
     rsets = [sample(1:n,3,replace=false) for _ in 1:num_sets]
     M = SentinelObservable(rsets,n,ne(g))
-    
+    Us::Vector{Function} = [x->x]
+    UtilityTransformationObservable(M,Us)
     #edgelist = collect(edges(g))
     x = zeros(Int64, n) .- 1 
     out = percolation_MC(g,M; num_samples = 10^1)
