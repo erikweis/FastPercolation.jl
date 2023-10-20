@@ -4,8 +4,9 @@ module FastPercolation
 include("observables/Observables.jl")
 #include("observables/sentinel_surveillance.jl")
 include("percolation_MC.jl")
+include("micro_to_canonical.jl")
 
-export InfluenceMaxObservable, UtilityTransformationObservable, percolation_MC
+export InfluenceMaxObservable, UtilityTransformationObservable, percolation_MC, micro_to_canonical
 
 end # module FastPercolation
 

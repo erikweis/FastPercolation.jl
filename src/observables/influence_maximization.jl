@@ -26,7 +26,7 @@ is_immune(i,j,M::InfluenceMaxObservable) = false
 
 
 function calculate_observables!(
-    Q::QInfluenceMax,
+    m::Int64,
     M::InfluenceMaxObservable,
     x::Vector{Int64}
 )
@@ -35,6 +35,8 @@ function calculate_observables!(
     Q[i] represents the outbreak under seed set S_i
     """
     
+    Q = M.Qs[m]
+
     group = 1
     num_unique = 0
 

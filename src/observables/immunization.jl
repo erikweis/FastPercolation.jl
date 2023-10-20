@@ -22,7 +22,7 @@ is_immune(i,j,M::ImmunizationObservable) = (i ∈ M.immunized_set || j ∈ M.imm
 update_observable_data(i,j,x,M::ImmunizationObservable) = nothing
 
 function calculate_observables!(
-    Q::QImmunization,
+    m::Int64,
     M::ImmunizationObservable,
     x::Vector{Int64}
 )
@@ -31,6 +31,8 @@ function calculate_observables!(
 
     Q is a vector of length one, where Q[i] is the negative outbreak size under seed i
     """
+
+    Q = M.Qs[m]
     for i in 1:length(x)
         Q[i] = x[find(x,i)] # find(i) is the outbreak size of the root of i
     end

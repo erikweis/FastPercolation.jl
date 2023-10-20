@@ -77,10 +77,24 @@ function percolation_MC(
         if verbose; update!(prog,i);end
     end
 
-    microcanonical = map(Q -> convert.(Float64,Q),Qs)
-    return map(Q -> Q./= num_samples, microcanonical)
+    return process_micro(Qs,num_samples)
+    # microcanonical = map(Q -> convert.(Float64,Q),Qs)
+    # return map(Q -> Q./= num_samples, microcanonical)
 end
 
+
+function process_micro(data, num_samples)
+    if typeof(data) <: Union{Vector{Int64},Matrix{Int64}}
+        # If the current object is a Vector{Int64}, convert it to Vector{Float64}
+        return convert.(Float64, data) ./ num_samples
+    elseif typeof(data) <: Vector
+        # If the current object is a vector, recursively process its elements
+        return [process_micro(inner_vector,num_samples) for inner_vector in data]
+    else
+        # If the current object is not a vector, return it unchanged
+        return data
+    end
+end
 
 # update_observable_data(i,j,x,M::NeighborhoodObservable) = nothing
 # update_observable_data(i,j,x,M::MarginalsObservable) = nothing
