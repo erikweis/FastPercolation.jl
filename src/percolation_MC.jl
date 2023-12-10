@@ -5,7 +5,7 @@ using Graphs
 using ProgressMeter
 using Random
 
-export percolation_MC
+export percolation_MC, process_micro
 
 get_ij(e::Any) = src(e),dst(e)
 get_ij(e::Union{Tuple,Vector}) = e[1],e[2]
@@ -29,18 +29,21 @@ function percolation_MC!(
         # get nodes of edge and check for vaccinated nodes
         i,j = get_ij(e)
 
-        #get roots of edges
-        r_i = find(x,i)
-        r_j = find(x,j)
+        if !is_immune(i,j,M)            # edge is active only when neither neither node is immune
 
-        # perform union if necessary
-        if (r_i !== r_j)
-            if x[r_i] < x[r_j]      # size of i is greater than j
-                x[r_i] += x[r_j]    # size of i grow by the size of j 
-                x[r_j] = r_i        # assign all js to group of i
-            else                    # size of i is less than j
-                x[r_j] += x[r_i]    # size of j grow by the size of i
-                x[r_i] = r_j        # assign all i's to group of j 
+            #get roots of edges
+            r_i = find(x,i)
+            r_j = find(x,j)
+
+            # perform union if necessary
+            if (r_i !== r_j)
+                if x[r_i] < x[r_j]      # size of i is greater than j
+                    x[r_i] += x[r_j]    # size of i grow by the size of j 
+                    x[r_j] = r_i        # assign all js to group of i
+                else                    # size of i is less than j
+                    x[r_j] += x[r_i]    # size of j grow by the size of i
+                    x[r_i] = r_j        # assign all i's to group of j 
+                end
             end
         end
 
@@ -61,7 +64,9 @@ function percolation_MC(
     verbose=false
 )
 
+    #println("num_samples: $num_samples")
     if m_max === nothing; m_max=ne(g); end
+    #if m_max > ne(g); m_max=ne(g); end
     n = nv(g)
     x = zeros(Int64, n) .- 1 
     edgelist = collect(edges(g))
@@ -74,7 +79,7 @@ function percolation_MC(
         percolation_MC!(edgelist, x, M, m_max)
         Qs .+= M.Qs
 
-        if verbose; update!(prog,i);end
+        if verbose; update!(prog,i);end #update progress meter
     end
 
     return process_micro(Qs,num_samples)
@@ -84,15 +89,17 @@ end
 
 
 function process_micro(data, num_samples)
-    if typeof(data) <: Union{Vector{Int64},Matrix{Int64}}
+
+    """Return a normalized version of the data by dividing by num_samples"""
+    if isa(data, Union{Vector{Int64},Matrix{Int64}})
         # If the current object is a Vector{Int64}, convert it to Vector{Float64}
         return convert.(Float64, data) ./ num_samples
-    elseif typeof(data) <: Vector
+    elseif isa(data,Vector)
         # If the current object is a vector, recursively process its elements
         return [process_micro(inner_vector,num_samples) for inner_vector in data]
     else
-        # If the current object is not a vector, return it unchanged
-        return data
+        # If the current object is not a vector, return it by diving by num samples
+        return data / num_samples
     end
 end
 

@@ -1,7 +1,7 @@
 import Distributions.Binomial
 import Distributions.pdf
 
-export micro_to_canonical, reduce_sentinel_Qs, reduce_sentinel_Q
+export micro_to_canonical, reduce_sentinel_Qs, reduce_sentinel_Q, binomial_pw
 
 function binomial_pw(p,N)
     pdf.(Binomial(N,p),1:N)

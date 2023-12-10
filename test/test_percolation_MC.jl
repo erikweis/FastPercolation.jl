@@ -1,30 +1,90 @@
-
 using FastPercolation
 using Test
 using Graphs
 using Random
 using StatsBase
-using TimerOutputs
+#using TimerOutputs
+
 
 function test_percolation_MC()
 
-    n = 20
-    g = newman_watts_strogatz(n, 4, 0.3)
+    g = smallgraph(:karate) #KarateGraph(n, 4, 0.3)
+    n = nv(g)
     Random.seed!(1)
     num_sets = 50
     rsets = [sample(1:n,3,replace=false) for _ in 1:num_sets]
+    
+    # get qualities with UtilityTransformationObservable
     M = SentinelObservable(rsets,n,ne(g))
     Us::Vector{Function} = [x->x]
-    UtilityTransformationObservable(M,Us)
-    #edgelist = collect(edges(g))
-    x = zeros(Int64, n) .- 1 
-    out = percolation_MC(g,M; num_samples = 10^1)
-    print(out[1])
+    UT = UtilityTransformationObservable(M,Us)
+
+    Random.seed!(2)
+    micros = percolation_MC(g,UT; num_samples = 10)
+    micro = micros[1]
+    micro = reduce_sentinel_Qs(micro)
+    qs = micro_to_canonical(0.1,micro)
+    
+    # get qualities with normal observable
+    M = SentinelObservable(rsets,n,ne(g))
+    Random.seed!(2)
+    micro = percolation_MC(g,M; num_samples = 10)
+    micro = reduce_sentinel_Qs(micro)
+    qs2 = micro_to_canonical(0.1,micro)
+
+    # check if qs and qs2 are approximately equal
+    return isapprox(qs, qs2)
+end
+
+function test_percolation_MC_vaccination()
+
+    g = smallgraph(:karate) #KarateGraph(n, 4, 0.3)
+    n = nv(g)
+    Random.seed!(1)
+    num_sets = 50
+    rsets = [sample(1:n,3,replace=false) for _ in 1:num_sets]
+    rsets = rsets[1]
+    
+    # get qualities with UtilityTransformationObservable
+    M = ImmunizationObservable(rsets,n,ne(g))
+    Us::Vector{Function} = [x->-abs(x)^1]
+    UT = UtilityTransformationObservable(M,Us)
+
+    Random.seed!(2)
+    micros = percolation_MC(g,UT; num_samples = 10)
+    micro = micros[1]
+    qs = micro_to_canonical(0.1,micro)
+    
+    # get qualities with normal observable
+    M = ImmunizationObservable(rsets,n,ne(g))
+    Random.seed!(2)
+    micro = percolation_MC(g,M; num_samples = 10)
+    qs2 = micro_to_canonical(0.1,micro)
+
+    println(qs,qs2)
+    # check if qs and qs2 are approximately equal
+    return isapprox(qs, qs2)
+end
+
+
+function test_process_micro()
+
+    data = [1]
+    @assert process_micro(data,10) == [0.1]
+
+    data = [[1]]
+    @assert process_micro(data,10) == [[0.1]]
+
+    data = [[[1]]] 
+    @assert process_micro(data,10) == [[[0.1]]]
+    print(process_micro(data,100))
     return true
 end
 
 @testset begin
-    @test test_percolation_MC()
+    #@test test_percolation_MC()
+    @test test_percolation_MC_vaccination()
+    #@test test_process_micro()
 end
 
 # function test_create_Ms()

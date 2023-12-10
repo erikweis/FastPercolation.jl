@@ -9,4 +9,3 @@ include("micro_to_canonical.jl")
 export InfluenceMaxObservable, UtilityTransformationObservable, percolation_MC, micro_to_canonical
 
 end # module FastPercolation
-

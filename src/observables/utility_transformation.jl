@@ -24,8 +24,9 @@ function UtilityTransformationObservable(M::Observable, Us::Vector{Function})
     UtilityTransformationObservable{T}(M,Qs,Us)
 end
 
-reset_observable(M::UtilityTransformationObservable) = nothing
+reset_observable(UTM::UtilityTransformationObservable) = reset_observable(UTM.M)
 
+is_immune(i,j,UTM::UtilityTransformationObservable) = is_immune(i,j,UTM.M)
 
 update_observable_data(i,j,x,UTM::UtilityTransformationObservable) = update_observable_data(i,j,x,UTM.M)
 
