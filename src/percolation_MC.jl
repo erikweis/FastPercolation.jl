@@ -1,11 +1,14 @@
 using ..Observables
 include("utils.jl")
+#include("percolation_MC.jl")
 
 using Graphs
 using ProgressMeter
 using Random
+using Distributed
+using ParallelUtilities
 
-export percolation_MC, process_micro
+export percolation_MC, percolation_MC_parallel, percolation_MC!, process_micro
 
 get_ij(e::Any) = src(e),dst(e)
 get_ij(e::Union{Tuple,Vector}) = e[1],e[2]
@@ -61,12 +64,18 @@ function percolation_MC(
     M::Observable;
     num_samples::Int64 = 10,
     m_max = nothing,
-    verbose=false
+    verbose=false,
+    parallel=false
 )
 
-    #println("num_samples: $num_samples")
+    # check for parallel
+    if parallel
+        println("running parallel version")
+        return percolation_MC_parallel(g,M,num_samples=num_samples,m_max=m_max,verbose=verbose)
+    end
+
+    # setup steps
     if m_max === nothing; m_max=ne(g); end
-    #if m_max > ne(g); m_max=ne(g); end
     n = nv(g)
     x = zeros(Int64, n) .- 1 
     edgelist = collect(edges(g))
@@ -102,6 +111,39 @@ function process_micro(data, num_samples)
         return data / num_samples
     end
 end
+
+function percolation_MC_parallel(
+    g::Graph,
+    M::Observable;
+    num_samples::Int64 = 10,
+    m_max = nothing,
+    verbose=false
+)
+
+    #println("num_samples: $num_samples")
+    if m_max === nothing; m_max=ne(g); end
+    n = nv(g)
+    x = zeros(Int64, n) .- 1 
+    edgelist = collect(edges(g))
+
+    # create collector state on each core
+    @everywhere g = $g
+    @everywhere M = $M
+    @everywhere begin
+        n = nv(g)
+        x = zeros(Int64, n) .- 1 
+        edgelist = collect(edges(g))
+    end
+    
+    microcanonical = pmapreduce(.+, 1:num_samples) do i
+        percolation_MC!(edgelist, x, M, m_max)
+        M.Qs
+    end
+    microcanonical = map(Q -> convert.(Float64,Q),microcanonical)
+    return map(Q -> Q./= num_samples, microcanonical)
+end
+
+
 
 # update_observable_data(i,j,x,M::NeighborhoodObservable) = nothing
 # update_observable_data(i,j,x,M::MarginalsObservable) = nothing
